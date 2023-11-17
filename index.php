@@ -52,3 +52,18 @@ function sum2(...$arg)
 sum2(1, 2);
 sum2(29, 15, 8);
 sum2(2, 18, 29, 35, 47);
+?>
+
+<h2>函數參數預設值</h2>
+<?php
+// 不管呼叫時有沒有使用第三個參數，程式都能正常執行
+function sum3($a, $b, $c = 2)
+{
+  $sum = ($a + $b) * $c;
+  echo "$a 、 $b, 倍數 $c <br>";
+  return $sum;
+}
+
+echo "總和是" . sum3(10, 15);
+echo "<hr>";
+echo "總和是" . sum3(10, 15, 4);
