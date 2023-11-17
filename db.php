@@ -3,7 +3,7 @@
 $rows = all('member', 'users');
 printdata($rows);
 
-function all($dbname, $tableName)
+function all($dbname = null, $tableName)
 {
   $dsn = "mysql:host=localhost;charset=utf8;dbname=$dbname";
   $pdo = new PDO($dsn, 'root', '');
