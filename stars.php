@@ -13,6 +13,10 @@ span {
 </style>
 <?php
 
+stars('正三角形', 5);
+stars('菱形', 9);
+stars('倒三角形', 7);
+stars('矩形', 10);
 // 這裡呼叫函數的位置在定義函數的上方也能正常使用
 equilateral_triangle(5);
 equilateral_triangle(10);
@@ -22,9 +26,29 @@ reverse_equilateral_triangle(5);
 reverse_equilateral_triangle(10);
 reverse_equilateral_triangle(15);
 echo "<hr>";
-retangle(5);
-retangle(7);
-retangle(9);
+diamond(5);
+diamond(7);
+diamond(9);
+
+function stars($shape, $size)
+{
+  switch ($shape) {
+    case '正三角形':
+      equilateral_triangle($size);
+      break;
+
+    case '菱形':
+      diamond($size);
+      break;
+
+    case '倒三角形':
+      reverse_equilateral_triangle($size);
+      break;
+    case '矩形':
+      retangle($size);
+      break;
+  }
+}
 function equilateral_triangle($size)
 {
 
@@ -69,7 +93,7 @@ function reverse_equilateral_triangle($size)
 <?php
 // 巢狀迴圈，內層有兩個迴圈
 
-function retangle($size)
+function diamond($size)
 {
   $tmp = 0;
   $mid = floor(($size * 2 - 1) / 2);
@@ -96,4 +120,24 @@ function retangle($size)
   echo "<hr>";
 }
 // 外迴圈負責產生列數
+?>
+
+<?php
+function retangle($size)
+{
+
+  for ($i = 0; $i < $size; $i++) {
+    for ($j = 0; $j < $size; $j++) {
+      if ($i === 0 || $i === $size - 1) {
+        echo "*";
+      } else if ($j === 0 || $j === $size - 1) {
+        echo "*";
+      } else {
+        // 這裡要注意不能使用 " "，只會顯示一個空白而已
+        echo "&nbsp;";
+      }
+    }
+    echo "<br>";
+  }
+}
 ?>
