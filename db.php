@@ -1,204 +1,189 @@
 <?php
-/* 我自己打的
-$rows = all('school', 'students', ' where `dept` = 1');
-printdata($rows);
-
-function all($dbname = null, $tableName = null, $where = '')
-{
-  $dsn = "mysql:host=localhost;charset=utf8;dbname=$dbname";
-  $pdo = new PDO($dsn, 'root', '');
-  $sel = "select * from `$tableName` ";
-
-  if (isset($tableName) && isset($dbname) && !empty($tableName) && !empty($dbname)) {
-    if (is_array($where)) {
-      if (!empty($where)) {
-        foreach ($where as $col => $value) {
-          $tmp[] = "`$col`='$value'";
-        }
-        $sql = "$sel where " . join(" && ", $tmp);
-      } else {
-        $sql = $sel;
-      }
-    } else {
-      $sql = "$sel $where";
-    }
-    $rows = $pdo->query($sql)->fetchAll();
-    return $rows;
-  } else {
-    echo "錯誤:沒有指定的資料庫或對應的資料表名稱";
-  }
-}
-
-function printdata($array)
-{
-  echo "<pre>";
-  print_r($array);
-  echo "</pre>";
-}
-*/
-
-// 老師的版本，自己的補上後之後刪除掉
-// $rows = all('students', ['dept' => '3']);
-
-// $row = find('students', 10);
-// $row = find('students', ['dept' => '1', 'graduate_at' => '23']);
-// $rows = all('students', ['dept' => '1', 'graduate_at' => '23']);
-// dd($row);
-// echo "<hr>";
-// dd($rows);
-
-// $up = update('students', '3', ['dept' => '16', 'name' => '張明珠']);
-// $up = update("students", ['dept' => '5', 'status_code' => '001'], ['dept' => '100', 'name' => '項羽']);
-// dd($up);
-
-// insert('dept', ['code' => '110', 'name' => '圖書館系']);
-// del('students', ['dept' => '3', 'status_code' => '001']);
-
-date_default_timezone_set("Asia/Taipei");
-
+// 注意這兩句的位置，要在被引用的地方上面
 $dsn = "mysql:host=localhost;charset=utf8;dbname=school";
 $pdo = new PDO($dsn, 'root', '');
 
-function pdo()
+date_default_timezone_set("Asia/Taipei");
+
+// $rows = all('students'," where `dept`= '2'");
+// printData($rows);
+
+// $row = find('students', ['dept' => '1', 'graduate_at' => '23']);
+// $rows = all('students', ['dept' => '1', 'graduate_at' => '23']);
+
+// echo "<h3>相同參數使用 find()";
+// printData($row);
+// echo "<hr>";
+// echo "<h3>相同參數使用 all()";
+// printData($rows);
+
+// $up = update('students', ['dept' => '98', 'name' => '魯蛇'], '6');
+// $up = update('students', ['dept' => '98', 'name' => '魯蛇'], ['dept' => '3', 'status_code' => '001  ']);
+// printData($up);
+
+// insert('dept', ['code' => '110', 'name' => '森林系']);
+// del('dept', ['code' => '110', 'name' => '森林系']);
+
+// 取得資料表中所有資料 / 所有滿足條件的資料的函數
+function all($table = null, $where = '', $other = '' /*這個 $other 指的是 sql 語句中 where 後面其他的條件句*/)
 {
-  $dsn = "mysql:host=localhost;charset=utf8;dbname=school";
-  $pdo = new PDO($dsn, 'root', '');
-  return $pdo;
-}
+    global $pdo;
+    $sql = "select * from `$table` ";
 
+    if (isset($table) && !empty($table)) {
 
-function del($table, $id)
-{
-  // 方法1 用 include 使用重複的程式碼
-  // include "pdo.php";
-  // 方法2 用 global 變數使用重複的程式碼
-  // global $pdo;
-  // 方法3 用 function 使用重複的程式碼
-  $pdo = pdo();
+        if (is_array($where)) {
+            /*
+         這裡判斷是否為陣列是因為 sql 語句中可能有多個條件，這時候如果將多個條件用字串的方式表示可能會有輸入錯誤的情況產生，
+         所以把多個條件放入陣列中 (陣列中的格式單純 '' => '')
+        
+           例如：
+           ['dept' => '3', 'graduate_at' => '12'] 要轉換成能放入 sql 語句的 `dept` = '3' && `graduate_at` = '12' 格式
 
-  $sql = "delete from `$table` where ";
+        */
+            if (!empty($where)) {
+                // $tmp = [];
+                foreach ($where as $key => $value) {
+                    $tmp[] = "`$key` = '$value'";
+                }
+                $sql .=  "where " . join(' && ', $tmp);
+            } else {
+                /* 如果是空陣列的話，去做 join( ) 不會顯示任何東西，另外 where 後面沒放東西的 sql 語，在資料庫中會有問題，所以乾脆把包含 where 的部分拿掉
+                $sql = "select * from `$table` ";
+                */
 
-  if (is_array($id)) {
+                $sql;
+            }
+        } else {
 
-    foreach ($id as $col => $value) {
-      $tmp[] = "`$col`='$value'";
-    }
-    $sql .=  join(" && ", $tmp);
-  } else if (is_numeric($id)) {
-    $sql .= " `id` = '$id'";
-  } else {
-    echo "錯誤:參數的資料型態必須是數字或陣列";
-  }
-
-  // echo $sql;
-  return $pdo->exec($sql);
-}
-
-
-// crud 的 r
-function all($table = null, $where = '', $other = '')
-{
-  $pdo = pdo();
-  $sql = "select * from `$table` ";
-
-  if (isset($table) && !empty($table)) {
-
-    if (is_array($where)) {
-      /**
-       * ['dept'=>'2','graduate_at'=>12] =>  where `dept`='2' && `graduate_at`='12'
-       * $sql="select * from `$table` where `dept`='2' && `graduate_at`='12'"
-       */
-      if (!empty($where)) {
-        foreach ($where as $col => $value) {
-          $tmp[] = "`$col`='$value'";
+            $sql .=  $where;
         }
-        $sql .= " where " . join(" && ", $tmp);
-      }
+
+        $sql .= $other;
+
+        echo $sql;
+        /*
+        這種寫法會回傳欄位名稱、欄位值以及欄位索引值、欄位值，會不必要地增加網路傳輸的資料量
+        $data = $pdo->query($sql)->fetchAll();
+        */
+
+        // PDO::FETCH_ASSOC : 只會回傳欄位名稱、欄位值；其中 ASSOC 指的是欄位名稱
+        $data = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+
+        return $data;
     } else {
-      $sql .= " $where";
+        echo "錯誤:沒有指定的資料表名稱";
     }
-
-    $sql .= $other;
-    // echo 'all=>' . $sql;
-    $rows = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
-    return $rows;
-  } else {
-    echo "錯誤:沒有指定的資料表名稱";
-  }
 }
 
-//crud 的 r，針對某筆資料
-function find($table, $id)
+// 取得資料表中滿足條件的【一筆】資料
+function find($table, $id) /* $id 可能是數字或是儲存著多個條件的陣列 */
 {
-  $pdo = pdo();
-  $sql = "select * from `$table` ";
+    global $pdo;
+    $sql = "select * from `$table` ";
 
-  if (is_array($id)) {
-    foreach ($id as $col => $value) {
-      $tmp[] = "`$col`='$value'";
+    if (is_array($id)) {
+        foreach ($id as $key => $value) {
+            $tmp[] = "`$key` = '$value'";
+        }
+        $sql .=  "where " . join(' && ', $tmp);
+    } else if (is_numeric($id)) {
+        $sql .= "where `id` = '$id'";
+    } else {
+        echo "錯誤:參數的資料型態必須是數字或陣列";
     }
-    $sql .= " where " . join(" && ", $tmp);
-  } else if (is_numeric($id)) {
-    $sql .= " where `id` = '$id'";
-  } else {
-    echo "錯誤:參數的資料型態必須是數字或陣列";
-  }
-  // echo 'find=>' . $sql;
-  $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
-  return $row;
+
+    echo $sql;
+    $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+    return $row;
 }
 
-// $cols 是 set 後面接的欄位名稱和欄位值
-function update($table, $id, $cols)
+// 更新某資料庫中某資料表的資料的函數
+function update($table, $cols, $id) /* $cols 是 sql 語句中 set 之後的欄位 */
 {
-  $pdo = pdo();
-  $sql = "update `$table` set ";
+    global $pdo;
+    $sql = "update `$table` set ";
 
-  if (!empty($cols)) {
-    foreach ($cols as $col => $value) {
-      $tmp[] = "`$col`='$value'";
-    }
-  }
+    if (!empty($cols)) {
 
-  $sql .= join(',', $tmp);
-  //
-  $tmp = [];
-  if (is_array($id)) {
-    foreach ($id as $col => $value) {
-      $tmp[] = "`$col`='$value'";
+        foreach ($cols as $key => $value) {
+            $tmp[] = "`$key` = '$value'";
+        }
+    } else {
+        echo "錯誤:缺少要編輯的指定欄位";
     }
-    $sql .= " where " . join(" && ", $tmp);
-  } else if (is_numeric($id)) {
-    $sql .= " where `id` = '$id'";
-  } else {
-    echo "錯誤:參數的資料型態必須是數字或陣列";
-  }
-  // 測試用，程式最後上線時要記得拿掉
-  // echo $sql;
-  return $pdo->exec($sql);
+
+    $sql .= join(' , ', $tmp);
+
+    if (is_array($id)) {
+        $tmp = [];
+        foreach ($id as $key => $value) {
+            $tmp[] = "`$key` = '$value'";
+        }
+        $sql .=  " where " . join(' && ', $tmp);
+    } else if (is_numeric($id)) {
+        $sql .= " where `id` = '$id'";
+    } else {
+        echo "錯誤:參數的資料型態必須是數字或陣列";
+    }
+
+    echo $sql;
+    // exec() 會回傳影響的列數 (筆數 )
+    return $pdo->exec($sql);
 }
 
+// 新增資料到資料表的函數
 function insert($table, $values)
 {
-  $pdo = pdo();
-  $sql = "insert into `$table` ";
+    global $pdo;
+    $sql = "insert into `$table` ";
 
+    /*
+    這是最後要的結果
+    $cols = "(``,``,``,``)";
+    $vals = "('','','','')";
+    $sql = $sql . $cols . " values " . $vals;
+    */
 
+    /* 試試看用 foreach 代替 array_keys( ) 的寫法
+    foreach ($values as $key => $value) {
+        $tmp[] = "`$key`";
+    }
+    */
 
+    $cols = "(`" . join("`,`", array_keys($values)) . "`)";
+    $vals = "('" . join("','", $values) . "')";
+    $sql = $sql . $cols . " values " . $vals;
 
-  $cols = "(`" . join("`,`", array_keys($values)) . "`)";
-  // 這裡 join () 中直接使用 $values，是因為 join () 會直接對陣列元素 ( 欄位值 ) 做合併
-  $vals = "('" . join("','", $values) . "')";
-
-  $sql = $sql . $cols . " values " . $vals;
-
-  // echo $sql;
-  return $pdo->exec($sql);
+    echo $sql;
+    return $pdo->exec($sql);
 }
 
-function dd($array)
+// 刪除資料表中一筆 / 多筆資料的函數
+function del($table, $id)
 {
-  echo "<pre>";
-  print_r($array);
-  echo "</pre>";
+    global $pdo;
+    $sql = "delete from `$table` where ";
+
+    if (is_array($id)) {
+        foreach ($id as $key => $value) {
+            $tmp[] = "`$key` = '$value'";
+        }
+        $sql .= join(' && ', $tmp);
+    } else if (is_numeric($id)) {
+        $sql .= "`id` = '$id'";
+    } else {
+        echo "錯誤:參數的資料型態必須是數字或陣列";
+    }
+
+    echo $sql;
+    // return $pdo->exec($sql);
+}
+
+// 印出從資料表取得的資料的函數
+function printData($array)
+{
+    echo "<pre>";
+    print_r($array);
+    echo "</pre>";
 }

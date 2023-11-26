@@ -1,13 +1,13 @@
 <style>
 /* 這裡使用 universal selector 來選取所有的元素 */
 * {
-  font-family: 'Courier New', Courier, monospace;
-  /* 擺脫瀏覽器預設的行高 */
-  line-height: 0.5;
+    font-family: 'Courier New', Courier, monospace;
+    /* 擺脫瀏覽器預設的行高 */
+    line-height: 0.5;
 }
 
 span {
-  color: red;
+    color: red;
 }
 </style>
 </style>
@@ -29,26 +29,28 @@ echo "<hr>";
 diamond(5);
 diamond(7);
 diamond(9);
+echo "<hr>";
+stars('矩形', 10);
 
-function stars($shape, $size)
-{
-  switch ($shape) {
+//總機函數，讓使用者不需要記每個形狀的英文名稱的函數；
+//這個例子同時也是函數呼叫函數
+function stars($shape, $size) {
+  switch($shape) {
     case '正三角形':
       equilateral_triangle($size);
       break;
-
-    case '菱形':
-      diamond($size);
-      break;
-
     case '倒三角形':
       reverse_equilateral_triangle($size);
+      break;
+    case '菱形':
+      diamond($size);
       break;
     case '矩形':
       retangle($size);
       break;
   }
 }
+
 function equilateral_triangle($size)
 {
 
