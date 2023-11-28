@@ -44,6 +44,7 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
             if (!empty($where)) {
                 // $tmp = [];
                 foreach ($where as $key => $value) {
+                    // 這裡的 $tmp[] 代表已經宣告完且直接拿來使用
                     $tmp[] = "`$key` = '$value'";
                 }
                 $sql .=  "where " . join(' && ', $tmp);
