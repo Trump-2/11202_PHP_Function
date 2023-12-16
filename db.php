@@ -39,8 +39,8 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
         
            例如：
            ['dept' => '3', 'graduate_at' => '12'] 要轉換成能放入 sql 語句的 `dept` = '3' && `graduate_at` = '12' 格式
-
         */
+
             if (!empty($where)) {
                 // $tmp = [];
                 foreach ($where as $key => $value) {
@@ -49,10 +49,11 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
                 }
                 $sql .=  "where " . join(' && ', $tmp);
             } else {
-                /* 如果是空陣列的話，去做 join( ) 不會顯示任何東西，另外 where 後面沒放東西的 sql 語，在資料庫中會有問題，所以乾脆把包含 where 的部分拿掉
+                /* 如果是空陣列的話，去做 join( ) 不會顯示任何東西，另外 where 後面沒放東西的 sql 語，在資料庫中會有問題，所以乾脆把 sql 語句中的 where 的拿掉
                 $sql = "select * from `$table` ";
                 */
 
+                // 直接把 select * from $table 提出去放在變數裡面
                 $sql;
             }
         } else {
@@ -62,7 +63,9 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
 
         $sql .= $other;
 
-        echo $sql;
+        // 用這種方式測試組合出來的 sql 語句是否正確
+        // echo $sql;
+
         /*
         這種寫法會回傳欄位名稱、欄位值以及欄位索引值、欄位值，會不必要地增加網路傳輸的資料量
         $data = $pdo->query($sql)->fetchAll();
