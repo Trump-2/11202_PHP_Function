@@ -1,9 +1,9 @@
 <?php
 // 注意這兩句的位置，要在被引用的地方上面
+date_default_timezone_set("Asia/Taipei");
 $dsn = "mysql:host=localhost;charset=utf8;dbname=school";
 $pdo = new PDO($dsn, 'root', '');
 
-date_default_timezone_set("Asia/Taipei");
 
 // $rows = all('students'," where `dept`= '2'");
 // printData($rows);
@@ -72,6 +72,7 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
         */
 
         // PDO::FETCH_ASSOC : 只會回傳欄位名稱、欄位值；其中 ASSOC 指的是欄位名稱
+        // 另外 fetchAll() 會回傳二微陣列
         $data = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 
         return $data;
@@ -81,7 +82,7 @@ function all($table = null, $where = '', $other = '' /*這個 $other 指的是 s
 }
 
 // 取得資料表中滿足條件的【一筆】資料
-function find($table, $id) /* $id 可能是數字或是儲存著多個條件的陣列 */
+function find($table, $id) /* $id 可能是數字或是儲存著多個條件的陣列；陣列的例子有: 帳號和密碼，因為一組帳號密碼正常來說只會有一筆資料 */
 {
     global $pdo;
     $sql = "select * from `$table` ";
@@ -97,7 +98,9 @@ function find($table, $id) /* $id 可能是數字或是儲存著多個條件的�
         echo "錯誤:參數的資料型態必須是數字或陣列";
     }
 
-    echo $sql;
+    // echo $sql;
+
+    // fetch() 會回傳一維陣列
     $row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
     return $row;
 }
@@ -108,6 +111,7 @@ function update($table, $cols, $id) /* $cols 是 sql 語句中 set 之後的欄�
     global $pdo;
     $sql = "update `$table` set ";
 
+    // $sql = "update `$table` set `` = '', `` = '', `` = '', ... where `id` = ''"
     if (!empty($cols)) {
 
         foreach ($cols as $key => $value) {
@@ -132,15 +136,19 @@ function update($table, $cols, $id) /* $cols 是 sql 語句中 set 之後的欄�
     }
 
     echo $sql;
-    // exec() 會回傳影響的列數 (筆數 )
+    // exec() 會回傳 sql 語句影響的列數 (筆數 )
     return $pdo->exec($sql);
 }
 
 // 新增資料到資料表的函數
-function insert($table, $values)
+function insert($table, $values) // $values 是包含欄位和欄位值的陣列
 {
     global $pdo;
     $sql = "insert into `$table` ";
+
+// $sql = "insert into $table (`col1`, `col2`, `col3`, ...) values ('val1', 'val2', 'val3', ...)"
+
+    // ['col1' => 'val1', 'col2' => 'val2', 'col3' => 'val3' ...] 轉換成 (`col1`,`col2`,`col3`, ...) values ('val1','val2','val3', ...)"
 
     /*
     這是最後要的結果
@@ -167,21 +175,28 @@ function insert($table, $values)
 function del($table, $id)
 {
     global $pdo;
+    // 直接把 where 寫在 $sql 裡面，因為要刪除資料時一定都有條件，否則就會變成刪除整張資料表
     $sql = "delete from `$table` where ";
 
+    /*
+    $sql = "delete from `$table` where `id` = ''"
+    或
+    $sql = "delete from `$table` where `col1` = 'val1 && `col2` = 'val2'"
+    */
+    
     if (is_array($id)) {
         foreach ($id as $key => $value) {
             $tmp[] = "`$key` = '$value'";
         }
         $sql .= join(' && ', $tmp);
     } else if (is_numeric($id)) {
-        $sql .= "`id` = '$id'";
+        $sql .= " `id` = '$id'";
     } else {
         echo "錯誤:參數的資料型態必須是數字或陣列";
     }
 
-    echo $sql;
-    // return $pdo->exec($sql);
+    // echo $sql;
+    return $pdo->exec($sql);
 }
 
 // 印出從資料表取得的資料的函數
